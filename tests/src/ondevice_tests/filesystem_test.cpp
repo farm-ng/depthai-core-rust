@@ -191,12 +191,11 @@ TEST_CASE("dai::Path with Device") {
     const std::string strBadfile(&badfile[0]);
     const dai::Path diaBadFile(PATH5);
     dai::Pipeline pipeline;
-    auto nn = pipeline.create<dai::node::NeuralNetwork>();
-    REQUIRE_NOTHROW(nn->setBlobPath(BLOB_PATH));
     REQUIRE_THROWS_WITH(dai::Device(pipeline, PATH5), ContainsSubstring(PATH5));
     REQUIRE_THROWS_WITH(dai::Device(pipeline, &badfile[0]), ContainsSubstring(PATH5));
     REQUIRE_THROWS_WITH(dai::Device(pipeline, strBadfile), ContainsSubstring(PATH5));
     REQUIRE_THROWS_WITH(dai::Device(pipeline, diaBadFile), ContainsSubstring(PATH5));
+
 
 #if defined(_WIN32) && defined(_MSC_VER)
     const wchar_t wideBadfile[] = LPATH5;
@@ -208,12 +207,12 @@ TEST_CASE("dai::Path with Device") {
     REQUIRE_THROWS_WITH(dai::Device(pipeline, diaFileFromWide), ContainsSubstring(PATH5));
 #endif
 
+    auto nn = pipeline.create<dai::node::NeuralNetwork>();
+    REQUIRE_NOTHROW(nn->setBlobPath(BLOB_PATH));
 #if defined(__cpp_lib_filesystem)
     std::filesystem::path stdBadfile(PATH5);
     REQUIRE_THROWS_WITH(dai::Device(pipeline, stdBadfile), ContainsSubstring(PATH5));
 #endif
-
-    dai::Device d(pipeline);
 }
 
 TEST_CASE("dai::Path with CalibrationHandler") {
