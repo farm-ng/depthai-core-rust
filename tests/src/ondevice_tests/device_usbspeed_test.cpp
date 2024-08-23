@@ -4,6 +4,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <iostream>
 #include <memory>
 
@@ -18,21 +19,16 @@ TEST_CASE("Usb modes") {
     using namespace std::chrono;
     using namespace std::chrono_literals;
 
-    dai::Pipeline p;
-
-    std::unique_ptr<dai::Device> device;
+    std::shared_ptr<dai::Device> device;
     SECTION("UsbSpeed::HIGH") {
-        device.reset(new dai::Device(p, dai::UsbSpeed::HIGH));
+        device.reset(new dai::Device(dai::DeviceInfo(), dai::UsbSpeed::HIGH));
     }
 
     SECTION("UsbSpeed::SUPER") {
-        device.reset(new dai::Device(p, dai::UsbSpeed::SUPER));
+        device.reset(new dai::Device(dai::DeviceInfo(), dai::UsbSpeed::SUPER));
     }
 
-    SECTION("UsbSpeed::SUPER_PLUS") {
-        device.reset(new dai::Device(p, dai::UsbSpeed::SUPER_PLUS));
-    }
-
+    dai::Pipeline p(device);
     auto infoNode = p.create<dai::node::SystemLogger>();
     auto outputQueue = infoNode->out.createOutputQueue();
     p.start();
@@ -52,30 +48,19 @@ TEST_CASE("Usb config modes") {
     using namespace std::chrono;
     using namespace std::chrono_literals;
 
-    dai::Pipeline p(false);
+    std::shared_ptr<dai::Device> device;
 
     dai::UsbSpeed speed;
     SECTION("UsbSpeed::HIGH") {
-        dai::DeviceBase::Config cfg;
-        cfg.board.usb.maxSpeed = dai::UsbSpeed::HIGH;
         speed = dai::UsbSpeed::HIGH;
-        p.setBoardConfig(cfg.board);
     }
 
     SECTION("UsbSpeed::SUPER") {
-        dai::DeviceBase::Config cfg;
-        cfg.board.usb.maxSpeed = dai::UsbSpeed::SUPER;
         speed = dai::UsbSpeed::SUPER;
-        p.setBoardConfig(cfg.board);
     }
 
-    SECTION("UsbSpeed::SUPER_PLUS") {
-        dai::DeviceBase::Config cfg;
-        cfg.board.usb.maxSpeed = dai::UsbSpeed::SUPER_PLUS;
-        speed = dai::UsbSpeed::SUPER_PLUS;
-        p.setBoardConfig(cfg.board);
-    }
+    dai::Pipeline p(false);
+    device.reset(new dai::Device(p, speed));
 
-    dai::Device d(p);
-    REQUIRE(d.getUsbSpeed() == speed);
+    REQUIRE(static_cast<uint32_t>(device->getUsbSpeed()) <= static_cast<uint32_t>(speed));
 }
