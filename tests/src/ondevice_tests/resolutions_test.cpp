@@ -42,7 +42,7 @@ bool isDebug() {
 dai::CameraBoardSocket getBoardSocket() {
     const char* valueCStr = std::getenv("DEPTHAI_TESTS_CAM");
     if(valueCStr == nullptr) {
-        throw std::runtime_error("Please set camera board socket using environment variable DEPTHAI_TESTS_CAM");
+        valueCStr = "CAM_A";
     }
     std::string value(valueCStr);
     using E = dai::CameraBoardSocket;
