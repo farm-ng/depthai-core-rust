@@ -319,7 +319,7 @@ hunter_config(
     URL "https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.6.3.tar.gz"
     SHA1 "98d98632b3a62fdf1172442f8ad8190fc11cbef7"
     CMAKE_ARGS
-        YAML_BUILD_SHARED_LIBS=ON
+        YAML_BUILD_SHARED_LIBS=OFF
 )
 
 hunter_config(
