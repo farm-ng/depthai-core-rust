@@ -422,9 +422,45 @@ list(APPEND targets_to_export ${TARGET_CORE_NAME})
 
 # Add model_zoo helper binary
 find_package(argparse REQUIRED)
-add_executable(zoo_helper src/modelzoo/zoo_helper.cpp)
+set(ZOO_HELPER_SOURCES
+    src/modelzoo/zoo_helper.cpp
+    src/modelzoo/Zoo.cpp
+)
+set(ZOO_HELPER_LINK_LIBRARIES
+    argparse::argparse
+    nlohmann_json::nlohmann_json
+    messages
+    )
+add_executable(zoo_helper ${ZOO_HELPER_SOURCES})
 target_compile_definitions(zoo_helper PRIVATE DEPTHAI_TARGET_CORE)
-target_link_libraries(zoo_helper PRIVATE ${TARGET_CORE_NAME} argparse::argparse)
+target_link_libraries(zoo_helper PRIVATE ${ZOO_HELPER_LINK_LIBRARIES})
+
+target_include_directories(zoo_helper
+    PRIVATE
+        # Relative path to include directories after installed
+        "$<INSTALL_INTERFACE:include>"
+        "$<INSTALL_INTERFACE:include/${DEPTHAI_SHARED_3RDPARTY_HEADERS_PATH}>"
+
+        # Build time path to include directories
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>"
+        "$<BUILD_INTERFACE:${DEPTHAI_SHARED_PUBLIC_INCLUDE}>"
+        "$<BUILD_INTERFACE:${DEPTHAI_BOOTLOADER_SHARED_PUBLIC_INCLUDE}>"
+
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include/depthai>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>"
+        "$<BUILD_INTERFACE:${DEPTHAI_SHARED_INCLUDE}>"
+        "$<BUILD_INTERFACE:${DEPTHAI_BOOTLOADER_SHARED_INCLUDE}>"
+)
+
+target_include_directories(zoo_helper SYSTEM
+    PRIVATE
+        "$<BUILD_INTERFACE:${DEPTHAI_SHARED_3RDPARTY_INCLUDE}>"
+)
+
+
+
+
+
 list(APPEND targets_to_export zoo_helper)
 
 # Add default flags to core

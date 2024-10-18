@@ -459,6 +459,13 @@ jobs:
           ARTIFACTORY_URL: ${{ secrets.ARTIFACTORY_URL }}
           ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
           ARTIFACTORY_PASS: ${{ secrets.ARTIFACTORY_PASS }}
+      - name: Deploy zoo_helper binary
+        run: bash ./ci/upload_zoo_helper.sh
+        env:
+          ARTIFACTORY_URL: ${{ secrets.ARTIFACTORY_URL }}
+          ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+          ARTIFACTORY_PASS: ${{ secrets.ARTIFACTORY_PASS }}
+
 
   # This job builds wheels for ARM64 arch
   build-linux-arm64:
@@ -530,6 +537,13 @@ jobs:
           ARTIFACTORY_URL: ${{ secrets.ARTIFACTORY_URL }}
           ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
           ARTIFACTORY_PASS: ${{ secrets.ARTIFACTORY_PASS }}
+      - name: Deploy zoo_helper binary
+        run: bash ./ci/upload_zoo_helper.sh
+        env:
+          ARTIFACTORY_URL: ${{ secrets.ARTIFACTORY_URL }}
+          ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+          ARTIFACTORY_PASS: ${{ secrets.ARTIFACTORY_PASS }}
+
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
