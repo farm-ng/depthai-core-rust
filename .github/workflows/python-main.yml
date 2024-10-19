@@ -459,6 +459,13 @@ jobs:
           ARTIFACTORY_URL: ${{ secrets.ARTIFACTORY_URL }}
           ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
           ARTIFACTORY_PASS: ${{ secrets.ARTIFACTORY_PASS }}
+      - name: Copy zoo_helper
+        run: cd build_core && mkdir zoo_out && mv zoo_helper zoo_out
+      - name: Archive zoo helper
+        uses: actions/upload-artifact@v3
+        with:
+          name: zoo-out
+          path: build_core/zoo_out
       - name: Deploy zoo_helper binary
         run: bash ./ci/upload_zoo_helper.sh
         env:
@@ -537,6 +544,13 @@ jobs:
           ARTIFACTORY_URL: ${{ secrets.ARTIFACTORY_URL }}
           ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
           ARTIFACTORY_PASS: ${{ secrets.ARTIFACTORY_PASS }}
+      - name: Copy zoo_helper
+        run: cd build_core && mkdir zoo_out && mv zoo_helper zoo_out
+      - name: Archive zoo helper
+        uses: actions/upload-artifact@v3
+        with:
+          name: zoo-out
+          path: build_core/zoo_out
       - name: Deploy zoo_helper binary
         run: bash ./ci/upload_zoo_helper.sh
         env:
