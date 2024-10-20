@@ -459,6 +459,8 @@ jobs:
           ARTIFACTORY_URL: ${{ secrets.ARTIFACTORY_URL }}
           ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
           ARTIFACTORY_PASS: ${{ secrets.ARTIFACTORY_PASS }}
+      - name: List all files
+        run: find *
       - name: Copy zoo_helper
         run: cd build_core && mkdir zoo_out && mv zoo_helper zoo_out
       - name: Archive zoo helper
@@ -544,6 +546,8 @@ jobs:
           ARTIFACTORY_URL: ${{ secrets.ARTIFACTORY_URL }}
           ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
           ARTIFACTORY_PASS: ${{ secrets.ARTIFACTORY_PASS }}
+      - name: List all files
+        run: find *
       - name: Copy zoo_helper
         run: cd build_core && mkdir zoo_out && mv zoo_helper zoo_out
       - name: Archive zoo helper
