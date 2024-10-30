@@ -1,8 +1,25 @@
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     use cmake::Config;
 
+    // get the current directory
+    let current_dir = std::env::current_dir().unwrap();
+
     // Build the depthai-core library
     let dst = Config::new("..") // the main library is in the root of the repository
+        .define(
+            "DEPTHAI_SHARED_LOCAL",
+            current_dir
+                .join("../shared/depthai-shared")
+                .display()
+                .to_string(),
+        )
+        .define(
+            "DEPTHAI_BOOTLOADER_SHARED_LOCAL",
+            current_dir
+                .join("../shared/depthai-bootloader-shared")
+                .display()
+                .to_string(),
+        )
         .define("DEPTHAI_OPENCV_SUPPORT", "OFF")
         .define("CMAKE_WARN_DEPRECATED", "FALSE")
         .define("CMAKE_BUILD_TYPE", "Release")
