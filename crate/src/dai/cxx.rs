@@ -9,7 +9,7 @@ pub mod ffi {
 
     #[derive(Debug, Clone)]
     struct cxxPipelineOptions {
-        mxid: String,
+        oak_id: String,
         use_usb2: bool,
         camera_shape: cxxShape2,
         queue_capacity: u32,
@@ -67,7 +67,7 @@ pub mod ffi {
 
         fn get_all_available_devices() -> Vec<String>;
 
-        fn open_device(name: &str, usb2_mode: bool) -> *mut Device;
+        fn open_device(oak_id: &str, usb2_mode: bool) -> *mut Device;
 
         fn make_pipeline_autonomy(options: &cxxPipelineOptions) -> *mut Pipeline;
 

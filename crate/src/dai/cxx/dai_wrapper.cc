@@ -1,6 +1,6 @@
 #include "src/dai/cxx/dai_wrapper.h"
 
-#include "depthai_core_rust/src/dai/cxx.rs.h"
+#include "depthai_core_rust/crate/src/dai/cxx.rs.h"
 
 namespace dai {
 

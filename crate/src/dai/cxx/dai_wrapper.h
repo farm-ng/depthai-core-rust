@@ -16,7 +16,7 @@ namespace dai
 
     rust::Vec<rust::String> get_all_available_devices();
 
-    dai::Device *open_device(rust::Str const mxid, bool usb2_mode);
+    dai::Device *open_device(rust::Str const oak_id, bool usb2_mode);
 
     dai::Pipeline *make_pipeline_autonomy(cxxPipelineOptions const &options);
 
