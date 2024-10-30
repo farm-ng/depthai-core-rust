@@ -1,16 +1,8 @@
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     use cmake::Config;
 
-    // update the depthai-core third party submodule
-    std::process::Command::new("git")
-        .args(&["submodule", "update", "--init", "--recursive"])
-        .current_dir(std::env::current_dir().unwrap())
-        .status()
-        .unwrap();
-
     // Build the depthai-core library
-    let dst = Config::new("deps/depthai-core")
-        //.define("DEPTHAI_BUILD_EXAMPLES", "OFF")
+    let dst = Config::new("..") // the main library is in the root of the repository
         .define("DEPTHAI_OPENCV_SUPPORT", "OFF")
         .define("CMAKE_WARN_DEPRECATED", "FALSE")
         .define("CMAKE_BUILD_TYPE", "Release")
@@ -24,7 +16,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .file("src/dai/cxx/dai_wrapper.cc")
         .includes(&[
             ".",
-            //"/usr/include/opencv4",
             &(dst.to_owned() + "/include"),
             &(dst.to_owned() + "/include/depthai"),
             &(dst.to_owned() + "/include/depthai-shared/3rdparty"),

@@ -7,6 +7,3 @@ use cxx::ffi::{
 pub(crate) use cxx::ffi::{
     cxxImageFrameInfo, cxxImuPacket, cxxPipelineOptions, cxxShape2, TryGetResult,
 };
-
-mod depth_ai_state;
-pub(crate) use depth_ai_state::DepthAiState;
