@@ -76,7 +76,17 @@ dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
 
     // assign the imu to the pipeline
     std::shared_ptr<dai::node::IMU> imu = pipeline->create<dai::node::IMU>();
-    imu->enableIMUSensor({dai::IMUSensor::ACCELEROMETER_RAW, dai::IMUSensor::GYROSCOPE_RAW}, options.imu_report_rate_hz);
+    if (options.imu_use_raw) {
+        imu->enableIMUSensor({
+            dai::IMUSensor::ACCELEROMETER_RAW,
+            dai::IMUSensor::GYROSCOPE_RAW
+        }, options.imu_report_rate_hz);
+    } else {
+        imu->enableIMUSensor({
+            dai::IMUSensor::ACCELEROMETER,
+            dai::IMUSensor::GYROSCOPE_UNCALIBRATED
+        }, options.imu_report_rate_hz);
+    }
     imu->setBatchReportThreshold(options.imu_batch_report_threshold);
     imu->setMaxBatchReports(options.imu_max_batch_reports);
 

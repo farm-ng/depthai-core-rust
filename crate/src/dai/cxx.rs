@@ -15,6 +15,7 @@ pub mod ffi {
         queue_capacity: u32,
         queue_blocking: bool,
         camera_fps: f32,
+        imu_use_raw: bool,
         imu_report_rate_hz: u32,
         imu_batch_report_threshold: u32,
         imu_max_batch_reports: u32,
