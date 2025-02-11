@@ -74,6 +74,18 @@ dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
 
     cam_left->out.link(xout_left->input);
 
+    if(options.use_right_camera) {
+        std::shared_ptr<dai::node::MonoCamera> cam_right = pipeline->create<dai::node::MonoCamera>();
+        cam_right->setBoardSocket(dai::CameraBoardSocket::CAM_C);  // this should be the right camera
+        cam_right->setResolution(dai::MonoCameraProperties::SensorResolution::THE_800_P);
+        cam_right->setFps(options.camera_fps);
+
+        auto xout_right = pipeline->create<dai::node::XLinkOut>();
+        xout_right->setStreamName("cam_right");
+
+        cam_right->out.link(xout_right->input);
+    }
+
     // assign the imu to the pipeline
     std::shared_ptr<dai::node::IMU> imu = pipeline->create<dai::node::IMU>();
     if (options.imu_use_raw) {
