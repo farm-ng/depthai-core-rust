@@ -11,6 +11,7 @@ pub mod ffi {
     struct cxxPipelineOptions {
         oak_id: String,
         use_usb2: bool,
+        use_right_camera: bool,
         camera_shape: cxxShape2,
         queue_capacity: u32,
         queue_blocking: bool,
