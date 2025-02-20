@@ -2,16 +2,12 @@
 pub mod ffi {
 
     #[derive(Debug, Clone)]
-    struct cxxShape2 {
-        rows: usize,
-        cols: usize,
-    }
-
-    #[derive(Debug, Clone)]
     struct cxxPipelineOptions {
         oak_id: String,
         use_usb2: bool,
-        camera_shape: cxxShape2,
+        use_cam_left_mono: bool,
+        use_cam_right_mono: bool,
+        use_cam_color: bool,
         queue_capacity: u32,
         queue_blocking: bool,
         camera_fps: f32,

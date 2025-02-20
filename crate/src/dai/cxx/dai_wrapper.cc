@@ -61,18 +61,41 @@ dai::Device* open_device(rust::Str const oak_id, bool usb2_mode) {
 dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
     auto pipeline = new dai::Pipeline();
 
-    // add the left camera to the pipeline
-    std::shared_ptr<dai::node::MonoCamera> cam_left = pipeline->create<dai::node::MonoCamera>();
+    // add the left mono camera to the pipeline
+    if (options.use_cam_left_mono) {
+        std::shared_ptr<dai::node::MonoCamera> cam_left = pipeline->create<dai::node::MonoCamera>();
+        cam_left->setBoardSocket(dai::CameraBoardSocket::CAM_B);  // this should be the left camera
+        cam_left->setResolution(dai::MonoCameraProperties::SensorResolution::THE_800_P);
+        cam_left->setFps(options.camera_fps);
 
-    // TODO: make these configurable through options
-    cam_left->setBoardSocket(dai::CameraBoardSocket::CAM_B);  // this should be the left camera
-    cam_left->setResolution(dai::MonoCameraProperties::SensorResolution::THE_800_P);
-    cam_left->setFps(options.camera_fps);
+        auto xout_left = pipeline->create<dai::node::XLinkOut>();
+        xout_left->setStreamName("cam_mono_left");
+        cam_left->out.link(xout_left->input);
+    }
 
-    auto xout_left = pipeline->create<dai::node::XLinkOut>();
-    xout_left->setStreamName("cam_left");
+    // add the right mono camera to the pipeline
+    if (options.use_cam_right_mono) {
+        std::shared_ptr<dai::node::MonoCamera> cam_right = pipeline->create<dai::node::MonoCamera>();
+        cam_right->setBoardSocket(dai::CameraBoardSocket::CAM_C);  // this should be the right camera
+        cam_right->setResolution(dai::MonoCameraProperties::SensorResolution::THE_800_P);
+        cam_right->setFps(options.camera_fps);
 
-    cam_left->out.link(xout_left->input);
+        auto xout_right = pipeline->create<dai::node::XLinkOut>();
+        xout_right->setStreamName("cam_mono_right");
+        cam_right->out.link(xout_right->input);
+    }
+
+    // add the center rgb camera to the pipeline
+    if (options.use_cam_color) {
+        std::shared_ptr<dai::node::ColorCamera> cam_rgb = pipeline->create<dai::node::ColorCamera>();
+        cam_rgb->setBoardSocket(dai::CameraBoardSocket::CAM_A);  // this should be the center camera
+        cam_rgb->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
+        cam_rgb->setFps(options.camera_fps);
+
+        auto xout_rgb = pipeline->create<dai::node::XLinkOut>();
+        xout_rgb->setStreamName("cam_color");
+        cam_rgb->video.link(xout_rgb->input);
+    }
 
     // assign the imu to the pipeline
     std::shared_ptr<dai::node::IMU> imu = pipeline->create<dai::node::IMU>();
