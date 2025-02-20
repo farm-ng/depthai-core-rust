@@ -5,9 +5,9 @@ pub mod ffi {
     struct cxxPipelineOptions {
         oak_id: String,
         use_usb2: bool,
-        use_cam_left_mono: bool,
-        use_cam_right_mono: bool,
-        use_cam_color: bool,
+        enable_cam_left_mono: bool,
+        enable_cam_right_mono: bool,
+        enable_cam_color: bool,
         queue_capacity: u32,
         queue_blocking: bool,
         camera_fps: f32,

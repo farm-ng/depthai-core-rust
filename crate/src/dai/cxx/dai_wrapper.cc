@@ -62,7 +62,7 @@ dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
     auto pipeline = new dai::Pipeline();
 
     // add the left mono camera to the pipeline
-    if (options.use_cam_left_mono) {
+    if (options.enable_cam_left_mono) {
         std::shared_ptr<dai::node::MonoCamera> cam_left = pipeline->create<dai::node::MonoCamera>();
         cam_left->setBoardSocket(dai::CameraBoardSocket::CAM_B);  // this should be the left camera
         cam_left->setResolution(dai::MonoCameraProperties::SensorResolution::THE_800_P);
@@ -74,7 +74,7 @@ dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
     }
 
     // add the right mono camera to the pipeline
-    if (options.use_cam_right_mono) {
+    if (options.enable_cam_right_mono) {
         std::shared_ptr<dai::node::MonoCamera> cam_right = pipeline->create<dai::node::MonoCamera>();
         cam_right->setBoardSocket(dai::CameraBoardSocket::CAM_C);  // this should be the right camera
         cam_right->setResolution(dai::MonoCameraProperties::SensorResolution::THE_800_P);
@@ -86,7 +86,7 @@ dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
     }
 
     // add the center rgb camera to the pipeline
-    if (options.use_cam_color) {
+    if (options.enable_cam_color) {
         std::shared_ptr<dai::node::ColorCamera> cam_rgb = pipeline->create<dai::node::ColorCamera>();
         cam_rgb->setBoardSocket(dai::CameraBoardSocket::CAM_A);  // this should be the center camera
         cam_rgb->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
