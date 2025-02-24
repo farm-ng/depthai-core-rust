@@ -61,6 +61,10 @@ dai::Device* open_device(rust::Str const oak_id, bool usb2_mode) {
 dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
     auto pipeline = new dai::Pipeline();
 
+    // create a shared pointer to a control queue for each camera
+    auto control_in = pipeline->create<dai::node::XLinkIn>();
+    control_in->setStreamName("control");
+
     // add the left mono camera to the pipeline
     if (options.enable_cam_left_mono) {
         std::shared_ptr<dai::node::MonoCamera> cam_left = pipeline->create<dai::node::MonoCamera>();
@@ -71,6 +75,8 @@ dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
         auto xout_left = pipeline->create<dai::node::XLinkOut>();
         xout_left->setStreamName("cam_mono_left");
         cam_left->out.link(xout_left->input);
+
+        control_in->out.link(cam_left->inputControl);
     }
 
     // add the right mono camera to the pipeline
@@ -83,6 +89,8 @@ dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
         auto xout_right = pipeline->create<dai::node::XLinkOut>();
         xout_right->setStreamName("cam_mono_right");
         cam_right->out.link(xout_right->input);
+
+        control_in->out.link(cam_right->inputControl);
     }
 
     // add the center rgb camera to the pipeline
@@ -95,6 +103,8 @@ dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
         auto xout_rgb = pipeline->create<dai::node::XLinkOut>();
         xout_rgb->setStreamName("cam_color");
         cam_rgb->video.link(xout_rgb->input);
+
+        control_in->out.link(cam_rgb->inputControl);
     }
 
     // assign the imu to the pipeline
