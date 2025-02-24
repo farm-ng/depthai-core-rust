@@ -21,6 +21,8 @@ pub mod ffi {
     struct cxxImageFrameInfo {
         timestamp: f64,
         sequence_number: i64,
+        iso_sensitivity: i64,
+        exposure_time_us: i64,
     }
 
     #[derive(Debug, Clone, Default)]
@@ -56,6 +58,7 @@ pub mod ffi {
         type Device;
         type Pipeline;
         type DataOutputQueue;
+        type DataInputQueue;
     }
 
     // C++ types and signatures exposed to Rust.
@@ -68,6 +71,8 @@ pub mod ffi {
 
         fn make_pipeline_autonomy(options: &cxxPipelineOptions) -> *mut Pipeline;
 
+        unsafe fn set_exposure(control_queue: *mut DataInputQueue, exposure_time_us: i64, iso: i64);
+
         unsafe fn start_pipeline(device: *mut Device, pipeline: *mut Pipeline) -> bool;
 
         unsafe fn get_output_queue(
@@ -76,6 +81,11 @@ pub mod ffi {
             max_capacity: u32,
             blocking: bool,
         ) -> *mut DataOutputQueue;
+
+        unsafe fn get_input_queue(
+            device: *mut Device,
+            name: &str,
+        ) -> *mut DataInputQueue;
 
         unsafe fn try_get_image_frame(
             queue: *mut DataOutputQueue,

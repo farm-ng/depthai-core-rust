@@ -61,6 +61,10 @@ dai::Device* open_device(rust::Str const oak_id, bool usb2_mode) {
 dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
     auto pipeline = new dai::Pipeline();
 
+    auto control_in = pipeline->create<dai::node::XLinkIn>();
+    control_in->setStreamName("control");
+
+
     // add the left mono camera to the pipeline
     if (options.enable_cam_left_mono) {
         std::shared_ptr<dai::node::MonoCamera> cam_left = pipeline->create<dai::node::MonoCamera>();
@@ -71,6 +75,7 @@ dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
         auto xout_left = pipeline->create<dai::node::XLinkOut>();
         xout_left->setStreamName("cam_mono_left");
         cam_left->out.link(xout_left->input);
+        control_in->out.link(cam_left->inputControl);
     }
 
     // add the right mono camera to the pipeline
@@ -83,6 +88,7 @@ dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
         auto xout_right = pipeline->create<dai::node::XLinkOut>();
         xout_right->setStreamName("cam_mono_right");
         cam_right->out.link(xout_right->input);
+        control_in->out.link(cam_right->inputControl);
     }
 
     // add the center rgb camera to the pipeline
@@ -145,6 +151,17 @@ dai::DataOutputQueue* get_output_queue(dai::Device* device, rust::Str const name
 }
 
 /**
+ * @brief Gets an input queue from the device with the given name.
+ *
+ * @param device The device from which to get the output queue.
+ * @param name The name of the output queue.
+ * @return A pointer to the output queue.
+ */
+dai::DataInputQueue* get_input_queue(dai::Device* device, rust::Str const name) {
+    return device->getInputQueue(std::string(name)).get();
+}
+
+/**
  * @brief Tries to get an image frame from the given output queue.
  *
  * If no frame is available, a null pointer is returned to skip the tick in the codelet.
@@ -170,6 +187,8 @@ TryGetResult try_get_image_frame(dai::DataOutputQueue* queue, rust::Slice<uint8_
     // get the timestamp and sequence number to set in the message
     frame_info.timestamp = std::chrono::duration<double>(img_frame->getTimestamp().time_since_epoch()).count();
     frame_info.sequence_number = img_frame->getSequenceNum();
+    frame_info.exposure_time_us = img_frame->getExposureTime().count();
+    frame_info.iso_sensitivity = img_frame->getSensitivity();
 
     return TryGetResult::Ok;
 }
@@ -209,6 +228,12 @@ TryGetResult try_get_imu_packets(dai::DataOutputQueue* queue, rust::Slice<cxxImu
     }
 
     return TryGetResult::Ok;
+}
+
+void set_exposure(dai::DataInputQueue* control_queue, int64_t exposure_time_us, int64_t iso) {
+    dai::CameraControl ctrl;
+    ctrl.setManualExposure(exposure_time_us, iso);
+    control_queue->send(ctrl);
 }
 
 }  // namespace dai

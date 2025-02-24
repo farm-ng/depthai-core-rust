@@ -26,6 +26,9 @@ namespace dai
         dai::Device *device, rust::Str const name,
         uint32_t max_capacity, bool blocking);
 
+    dai::DataInputQueue *get_input_queue(
+        dai::Device *device, rust::Str const name);
+
     TryGetResult try_get_image_frame(
         dai::DataOutputQueue *queue,
         rust::Slice<uint8_t> dst_data,
@@ -35,5 +38,7 @@ namespace dai
         dai::DataOutputQueue *queue,
         rust::Slice<cxxImuPacket> imu_packets,
         uint32_t &available_count);
+
+    void set_exposure(dai::DataInputQueue* control_queue, int64_t exposure_time_us, int64_t iso);
 
 } // namespace dai
