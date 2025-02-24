@@ -26,6 +26,10 @@ namespace dai
         dai::Device *device, rust::Str const name,
         uint32_t max_capacity, bool blocking);
 
+    dai::DataInputQueue *get_input_queue(
+        dai::Device *device, rust::Str const name,
+        uint32_t max_capacity, bool blocking);
+
     TryGetResult try_get_image_frame(
         dai::DataOutputQueue *queue,
         rust::Slice<uint8_t> dst_data,
@@ -35,5 +39,12 @@ namespace dai
         dai::DataOutputQueue *queue,
         rust::Slice<cxxImuPacket> imu_packets,
         uint32_t &available_count);
+
+    void set_camera_settings(
+        dai::DataInputQueue *queue,
+        bool auto_exposure,
+        uint32_t exposure_time,
+        uint32_t iso_value,
+        uint32_t lens_pos);
 
 } // namespace dai

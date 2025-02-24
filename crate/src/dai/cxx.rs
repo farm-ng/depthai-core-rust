@@ -56,6 +56,7 @@ pub mod ffi {
         type Device;
         type Pipeline;
         type DataOutputQueue;
+        type DataInputQueue;
     }
 
     // C++ types and signatures exposed to Rust.
@@ -77,6 +78,13 @@ pub mod ffi {
             blocking: bool,
         ) -> *mut DataOutputQueue;
 
+        unsafe fn get_input_queue(
+            device: *mut Device,
+            name: &str,
+            max_capacity: u32,
+            blocking: bool,
+        ) -> *mut DataInputQueue;
+
         unsafe fn try_get_image_frame(
             queue: *mut DataOutputQueue,
             dst_data: &mut [u8],
@@ -88,5 +96,13 @@ pub mod ffi {
             imu_packets: &mut [cxxImuPacket],
             available_count: &mut u32,
         ) -> TryGetResult;
+
+        unsafe fn set_camera_settings(
+            queue: *mut DataInputQueue,
+            auto_exposure: bool,
+            exposure_time: u32,
+            iso_value: u32,
+            lens_pos: u32,
+        );
     }
 }

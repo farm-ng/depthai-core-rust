@@ -145,6 +145,19 @@ dai::DataOutputQueue* get_output_queue(dai::Device* device, rust::Str const name
 }
 
 /**
+ * @brief Gets an input queue from the device with the given name.
+ *
+ * @param device The device from which to get the input queue.
+ * @param name The name of the input queue.
+ * @param max_capacity The maximum capacity of the input queue.
+ * @param blocking Whether the input queue should block when full.
+ * @return A pointer to the input queue.
+ */
+dai::DataInputQueue* get_input_queue(dai::Device* device, rust::Str const name, uint32_t max_capacity, bool blocking) {
+    return device->getInputQueue(std::string(name), max_capacity, blocking).get();
+}
+
+/**
  * @brief Tries to get an image frame from the given output queue.
  *
  * If no frame is available, a null pointer is returned to skip the tick in the codelet.
@@ -209,6 +222,31 @@ TryGetResult try_get_imu_packets(dai::DataOutputQueue* queue, rust::Slice<cxxImu
     }
 
     return TryGetResult::Ok;
+}
+
+/**
+ * @brief Sets the camera settings on the given input queue.
+ *
+ * @param queue The input queue on which to set the camera settings.
+ * @param auto_exposure Whether to enable auto exposure.
+ * @param exposure_time The exposure time if auto exposure is disabled.
+ * @param iso_value The ISO value if auto exposure is disabled.
+ * @param lens_pos The lens position if auto focus is disabled.
+ */
+void set_camera_settings(dai::DataInputQueue* queue, bool auto_exposure, uint32_t exposure_time, uint32_t iso_value, uint32_t lens_pos) {
+    dai::CameraControl control;
+    if (auto_exposure) {
+        control.setAutoExposureEnable();
+    } else {
+        control.setManualExposure(exposure_time, iso_value);
+    }
+    if (lens_pos != 0) {
+        control.setAutoFocusMode(dai::CameraControl::AutoFocusMode::OFF);
+        control.setManualFocus(lens_pos);
+    } else {
+        control.setAutoFocusMode(dai::CameraControl::AutoFocusMode::CONTINUOUS_VIDEO);
+    }
+    queue->send(control);
 }
 
 }  // namespace dai
