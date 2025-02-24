@@ -21,6 +21,19 @@ pub mod ffi {
     struct cxxImageFrameInfo {
         timestamp: f64,
         sequence_number: i64,
+        iso_sensitivity: i64,
+        exposure_time_us: i64,
+    }
+
+    #[derive(Debug, Clone, Default)]
+    struct cxxCameraControlSettings {
+        enable_auto_exposure: bool,
+        enable_auto_focus: bool,
+        enable_auto_white_balance: bool,
+        exposure_time_us: u32,
+        iso_sensitivity: u32,
+        lens_position: u8,
+        color_temperature_kelvins: u16,
     }
 
     #[derive(Debug, Clone, Default)]
@@ -99,10 +112,7 @@ pub mod ffi {
 
         unsafe fn set_camera_settings(
             queue: *mut DataInputQueue,
-            auto_exposure: bool,
-            exposure_time: u32,
-            iso_value: u32,
-            lens_pos: u32,
+            settings: &cxxCameraControlSettings,
         );
     }
 }

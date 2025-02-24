@@ -12,6 +12,7 @@ namespace dai
     struct cxxImageFrameInfo;
     struct cxxImuPacket;
     struct cxxImuPacketInfo;
+    struct cxxCameraControlSettings;
     enum class TryGetResult;
 
     rust::Vec<rust::String> get_all_available_devices();
@@ -42,9 +43,6 @@ namespace dai
 
     void set_camera_settings(
         dai::DataInputQueue *queue,
-        bool auto_exposure,
-        uint32_t exposure_time,
-        uint32_t iso_value,
-        uint32_t lens_pos);
+        cxxCameraControlSettings const &settings);
 
 } // namespace dai

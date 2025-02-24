@@ -75,7 +75,6 @@ dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
         auto xout_left = pipeline->create<dai::node::XLinkOut>();
         xout_left->setStreamName("cam_mono_left");
         cam_left->out.link(xout_left->input);
-
         control_in->out.link(cam_left->inputControl);
     }
 
@@ -89,7 +88,6 @@ dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
         auto xout_right = pipeline->create<dai::node::XLinkOut>();
         xout_right->setStreamName("cam_mono_right");
         cam_right->out.link(xout_right->input);
-
         control_in->out.link(cam_right->inputControl);
     }
 
@@ -193,6 +191,8 @@ TryGetResult try_get_image_frame(dai::DataOutputQueue* queue, rust::Slice<uint8_
     // get the timestamp and sequence number to set in the message
     frame_info.timestamp = std::chrono::duration<double>(img_frame->getTimestamp().time_since_epoch()).count();
     frame_info.sequence_number = img_frame->getSequenceNum();
+    frame_info.exposure_time_us = img_frame->getExposureTime().count();
+    frame_info.iso_sensitivity = img_frame->getSensitivity();
 
     return TryGetResult::Ok;
 }
@@ -238,23 +238,30 @@ TryGetResult try_get_imu_packets(dai::DataOutputQueue* queue, rust::Slice<cxxImu
  * @brief Sets the camera settings on the given input queue.
  *
  * @param queue The input queue on which to set the camera settings.
- * @param auto_exposure Whether to enable auto exposure.
- * @param exposure_time The exposure time if auto exposure is disabled.
- * @param iso_value The ISO value if auto exposure is disabled.
- * @param lens_pos The lens position if auto focus is disabled.
+ * @param settings The camera settings to request to set.
  */
-void set_camera_settings(dai::DataInputQueue* queue, bool auto_exposure, uint32_t exposure_time, uint32_t iso_value, uint32_t lens_pos) {
+void set_camera_settings(dai::DataInputQueue* queue, cxxCameraControlSettings const &settings) {
     dai::CameraControl control;
-    if (auto_exposure) {
+    if (settings.enable_auto_exposure) {
         control.setAutoExposureEnable();
     } else {
-        control.setManualExposure(exposure_time, iso_value);
+        control.setManualExposure(settings.exposure_time_us, settings.iso_sensitivity);
     }
-    if (lens_pos != 0) {
-        control.setAutoFocusMode(dai::CameraControl::AutoFocusMode::OFF);
-        control.setManualFocus(lens_pos);
-    } else {
+    if (settings.enable_auto_focus) {
         control.setAutoFocusMode(dai::CameraControl::AutoFocusMode::CONTINUOUS_VIDEO);
+    } else {
+        control.setAutoFocusMode(dai::CameraControl::AutoFocusMode::OFF);
+        control.setManualFocus(settings.lens_position);
+    }
+    if (settings.enable_auto_white_balance) {
+        control.setAutoWhiteBalanceMode(
+            dai::CameraControl::AutoWhiteBalanceMode::AUTO
+        );
+    } else {
+        control.setAutoWhiteBalanceMode(
+            dai::CameraControl::AutoWhiteBalanceMode::OFF
+        );
+        control.setManualWhiteBalance(settings.color_temperature_kelvins);
     }
     queue->send(control);
 }
