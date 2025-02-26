@@ -23,6 +23,7 @@ pub mod ffi {
         sequence_number: i64,
         iso_sensitivity: i64,
         exposure_time_us: i64,
+        available_bytes: u32,
     }
 
     #[derive(Debug, Clone, Default)]
@@ -81,6 +82,7 @@ pub mod ffi {
         fn open_device(oak_id: &str, usb2_mode: bool) -> *mut Device;
 
         fn make_pipeline_autonomy(options: &cxxPipelineOptions) -> *mut Pipeline;
+        fn make_pipeline_recording(options: &cxxPipelineOptions) -> *mut Pipeline;
 
         unsafe fn start_pipeline(device: *mut Device, pipeline: *mut Pipeline) -> bool;
 

@@ -129,6 +129,92 @@ dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
 }
 
 /**
+ * @brief Creates a pipeline for recording with encoding.
+ *
+ * @param options Configuration options for the pipeline.
+ * @return A pointer to the configured pipeline.
+ */
+dai::Pipeline* make_pipeline_recording(cxxPipelineOptions const& options) {
+    auto pipeline = new dai::Pipeline();
+
+    if (options.enable_cam_color) {
+        std::shared_ptr<dai::node::ColorCamera> cam_color = pipeline->create<dai::node::ColorCamera>();
+        cam_color->setBoardSocket(dai::CameraBoardSocket::CAM_A);  // this should be the center camera
+        cam_color->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
+        cam_color->setFps(options.camera_fps);
+
+        auto xout_color = pipeline->create<dai::node::XLinkOut>();
+        xout_color->setStreamName("cam_color");
+
+        auto enc_color = pipeline->create<dai::node::VideoEncoder>();
+        enc_color->setDefaultProfilePreset(
+            cam_color->getFps(),  dai::VideoEncoderProperties::Profile::H264_MAIN);
+        enc_color->setBitrateKbps(500); // 0.5 Mbps
+
+        cam_color->video.link(enc_color->input);
+        enc_color->bitstream.link(xout_color->input);
+    }
+
+    if (options.enable_cam_left_mono) {
+        std::shared_ptr<dai::node::MonoCamera> cam_left = pipeline->create<dai::node::MonoCamera>();
+        cam_left->setBoardSocket(dai::CameraBoardSocket::CAM_B);  // this should be the left camera
+        cam_left->setResolution(dai::MonoCameraProperties::SensorResolution::THE_800_P);
+        cam_left->setFps(options.camera_fps);
+
+        auto xout_left = pipeline->create<dai::node::XLinkOut>();
+        xout_left->setStreamName("cam_mono_left");
+
+        auto enc_left = pipeline->create<dai::node::VideoEncoder>();
+        enc_left->setDefaultProfilePreset(
+            cam_left->getFps(),  dai::VideoEncoderProperties::Profile::H264_MAIN);
+        enc_left->setBitrateKbps(500); // 0.5 Mbps
+
+        cam_left->out.link(enc_left->input);
+        enc_left->bitstream.link(xout_left->input);
+    }
+
+    if (options.enable_cam_right_mono) {
+        std::shared_ptr<dai::node::MonoCamera> cam_right = pipeline->create<dai::node::MonoCamera>();
+        cam_right->setBoardSocket(dai::CameraBoardSocket::CAM_C);  // this should be the right camera
+        cam_right->setResolution(dai::MonoCameraProperties::SensorResolution::THE_800_P);
+        cam_right->setFps(options.camera_fps);
+
+        auto xout_right = pipeline->create<dai::node::XLinkOut>();
+        xout_right->setStreamName("cam_mono_right");
+
+        auto enc_right = pipeline->create<dai::node::VideoEncoder>();
+        enc_right->setDefaultProfilePreset(
+            cam_right->getFps(),  dai::VideoEncoderProperties::Profile::H264_MAIN);
+        enc_right->setBitrateKbps(500); // 0.5 Mbps
+
+        cam_right->out.link(enc_right->input);
+        enc_right->bitstream.link(xout_right->input);
+    }
+
+    // assign the imu to the pipeline
+    std::shared_ptr<dai::node::IMU> imu = pipeline->create<dai::node::IMU>();
+    if (options.imu_use_raw) {
+        imu->enableIMUSensor({
+            dai::IMUSensor::ACCELEROMETER_RAW,
+            dai::IMUSensor::GYROSCOPE_RAW
+        }, options.imu_report_rate_hz);
+    } else {
+        imu->enableIMUSensor({
+            dai::IMUSensor::ACCELEROMETER,
+            dai::IMUSensor::GYROSCOPE_UNCALIBRATED
+        }, options.imu_report_rate_hz);
+    }
+    imu->setBatchReportThreshold(options.imu_batch_report_threshold);
+    imu->setMaxBatchReports(options.imu_max_batch_reports);
+
+    auto xout_imu = pipeline->create<dai::node::XLinkOut>();
+    xout_imu->setStreamName("imu");
+    imu->out.link(xout_imu->input);
+
+    return pipeline;
+}
+
+/**
  * @brief Starts the depthai pipeline on the given device.
  *
  * @param device The device on which to start the pipeline.
@@ -181,7 +267,7 @@ TryGetResult try_get_image_frame(dai::DataOutputQueue* queue, rust::Slice<uint8_
     }
 
     auto& data_vec = img_frame->getData();
-    if(data_vec.size() != dst_data.size()) {
+    if(data_vec.size() > dst_data.size()) {
         return TryGetResult::InvalidSize;
     }
 
@@ -193,6 +279,7 @@ TryGetResult try_get_image_frame(dai::DataOutputQueue* queue, rust::Slice<uint8_
     frame_info.sequence_number = img_frame->getSequenceNum();
     frame_info.exposure_time_us = img_frame->getExposureTime().count();
     frame_info.iso_sensitivity = img_frame->getSensitivity();
+    frame_info.available_bytes = data_vec.size();
 
     return TryGetResult::Ok;
 }

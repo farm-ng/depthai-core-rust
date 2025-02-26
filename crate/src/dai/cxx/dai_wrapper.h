@@ -20,6 +20,7 @@ namespace dai
     dai::Device *open_device(rust::Str const oak_id, bool usb2_mode);
 
     dai::Pipeline *make_pipeline_autonomy(cxxPipelineOptions const &options);
+    dai::Pipeline *make_pipeline_recording(cxxPipelineOptions const &options);
 
     bool start_pipeline(dai::Device *device, dai::Pipeline *pipeline);
 
