@@ -10,7 +10,10 @@ pub mod ffi {
         enable_cam_color: bool,
         queue_capacity: u32,
         queue_blocking: bool,
-        camera_fps: f32,
+        camera_mono_fps: f32,
+        camera_color_fps: f32,
+        encoding_bitrate_kbps: u32,
+        encoding_quality: u8,
         imu_use_raw: bool,
         imu_report_rate_hz: u32,
         imu_batch_report_threshold: u32,
@@ -81,8 +84,7 @@ pub mod ffi {
 
         fn open_device(oak_id: &str, usb2_mode: bool) -> *mut Device;
 
-        fn make_pipeline_autonomy(options: &cxxPipelineOptions) -> *mut Pipeline;
-        fn make_pipeline_recording(options: &cxxPipelineOptions) -> *mut Pipeline;
+        fn make_pipeline_encoding(options: &cxxPipelineOptions) -> *mut Pipeline;
 
         unsafe fn start_pipeline(device: *mut Device, pipeline: *mut Pipeline) -> bool;
 

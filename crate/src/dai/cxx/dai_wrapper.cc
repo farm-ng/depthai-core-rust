@@ -48,108 +48,40 @@ dai::Device* open_device(rust::Str const oak_id, bool usb2_mode) {
 }
 
 /**
- * @brief Creates a pipeline for autonomy with a camera and IMU.
- *
- * This function sets up a pipeline that includes a mono camera and an IMU sensor.
- * The camera is configured to use the left board socket and outputs at 800p resolution
- * with a frame rate of 30 FPS. The IMU is configured to report accelerometer and gyroscope
- * data at a rate of 100 Hz.
- *
- * @param options Configuration options for the pipeline (currently not used).
- * @return A pointer to the configured pipeline.
- */
-dai::Pipeline* make_pipeline_autonomy(cxxPipelineOptions const& options) {
-    auto pipeline = new dai::Pipeline();
-
-    // create a shared pointer to a control queue for each camera
-    auto control_in = pipeline->create<dai::node::XLinkIn>();
-    control_in->setStreamName("control");
-
-    // add the left mono camera to the pipeline
-    if (options.enable_cam_left_mono) {
-        std::shared_ptr<dai::node::MonoCamera> cam_left = pipeline->create<dai::node::MonoCamera>();
-        cam_left->setBoardSocket(dai::CameraBoardSocket::CAM_B);  // this should be the left camera
-        cam_left->setResolution(dai::MonoCameraProperties::SensorResolution::THE_800_P);
-        cam_left->setFps(options.camera_fps);
-
-        auto xout_left = pipeline->create<dai::node::XLinkOut>();
-        xout_left->setStreamName("cam_mono_left");
-        cam_left->out.link(xout_left->input);
-        control_in->out.link(cam_left->inputControl);
-    }
-
-    // add the right mono camera to the pipeline
-    if (options.enable_cam_right_mono) {
-        std::shared_ptr<dai::node::MonoCamera> cam_right = pipeline->create<dai::node::MonoCamera>();
-        cam_right->setBoardSocket(dai::CameraBoardSocket::CAM_C);  // this should be the right camera
-        cam_right->setResolution(dai::MonoCameraProperties::SensorResolution::THE_800_P);
-        cam_right->setFps(options.camera_fps);
-
-        auto xout_right = pipeline->create<dai::node::XLinkOut>();
-        xout_right->setStreamName("cam_mono_right");
-        cam_right->out.link(xout_right->input);
-        control_in->out.link(cam_right->inputControl);
-    }
-
-    // add the center rgb camera to the pipeline
-    if (options.enable_cam_color) {
-        std::shared_ptr<dai::node::ColorCamera> cam_rgb = pipeline->create<dai::node::ColorCamera>();
-        cam_rgb->setBoardSocket(dai::CameraBoardSocket::CAM_A);  // this should be the center camera
-        cam_rgb->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
-        cam_rgb->setFps(options.camera_fps);
-
-        auto xout_rgb = pipeline->create<dai::node::XLinkOut>();
-        xout_rgb->setStreamName("cam_color");
-        cam_rgb->video.link(xout_rgb->input);
-
-        control_in->out.link(cam_rgb->inputControl);
-    }
-
-    // assign the imu to the pipeline
-    std::shared_ptr<dai::node::IMU> imu = pipeline->create<dai::node::IMU>();
-    if (options.imu_use_raw) {
-        imu->enableIMUSensor({
-            dai::IMUSensor::ACCELEROMETER_RAW,
-            dai::IMUSensor::GYROSCOPE_RAW
-        }, options.imu_report_rate_hz);
-    } else {
-        imu->enableIMUSensor({
-            dai::IMUSensor::ACCELEROMETER,
-            dai::IMUSensor::GYROSCOPE_UNCALIBRATED
-        }, options.imu_report_rate_hz);
-    }
-    imu->setBatchReportThreshold(options.imu_batch_report_threshold);
-    imu->setMaxBatchReports(options.imu_max_batch_reports);
-
-    auto xout_imu = pipeline->create<dai::node::XLinkOut>();
-    xout_imu->setStreamName("imu");
-    imu->out.link(xout_imu->input);
-
-    return pipeline;
-}
-
-/**
  * @brief Creates a pipeline for recording with encoding.
  *
  * @param options Configuration options for the pipeline.
  * @return A pointer to the configured pipeline.
  */
-dai::Pipeline* make_pipeline_recording(cxxPipelineOptions const& options) {
+dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
+
+    // shared parameters
+    dai::VideoEncoderProperties::Profile encoding_profile;
+    if (options.encoding_quality == 0) {
+        encoding_profile = dai::VideoEncoderProperties::Profile::H264_BASELINE;
+    } else if (options.encoding_quality == 1) {
+        encoding_profile = dai::VideoEncoderProperties::Profile::H264_MAIN;
+    } else if (options.encoding_quality == 2) {
+        encoding_profile = dai::VideoEncoderProperties::Profile::H264_HIGH;
+    }
+
+    // build the pipeline
+
     auto pipeline = new dai::Pipeline();
 
     if (options.enable_cam_color) {
         std::shared_ptr<dai::node::ColorCamera> cam_color = pipeline->create<dai::node::ColorCamera>();
         cam_color->setBoardSocket(dai::CameraBoardSocket::CAM_A);  // this should be the center camera
         cam_color->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
-        cam_color->setFps(options.camera_fps);
+        cam_color->setFps(options.camera_color_fps);
 
         auto xout_color = pipeline->create<dai::node::XLinkOut>();
         xout_color->setStreamName("cam_color");
 
         auto enc_color = pipeline->create<dai::node::VideoEncoder>();
         enc_color->setDefaultProfilePreset(
-            cam_color->getFps(),  dai::VideoEncoderProperties::Profile::H264_MAIN);
-        enc_color->setBitrateKbps(500); // 0.5 Mbps
+            cam_color->getFps(), dai::VideoEncoderProperties::Profile::H264_MAIN);
+        enc_color->setBitrateKbps(options.encoding_bitrate_kbps);
 
         cam_color->video.link(enc_color->input);
         enc_color->bitstream.link(xout_color->input);
@@ -159,15 +91,15 @@ dai::Pipeline* make_pipeline_recording(cxxPipelineOptions const& options) {
         std::shared_ptr<dai::node::MonoCamera> cam_left = pipeline->create<dai::node::MonoCamera>();
         cam_left->setBoardSocket(dai::CameraBoardSocket::CAM_B);  // this should be the left camera
         cam_left->setResolution(dai::MonoCameraProperties::SensorResolution::THE_800_P);
-        cam_left->setFps(options.camera_fps);
+        cam_left->setFps(options.camera_mono_fps);
 
         auto xout_left = pipeline->create<dai::node::XLinkOut>();
         xout_left->setStreamName("cam_mono_left");
 
         auto enc_left = pipeline->create<dai::node::VideoEncoder>();
         enc_left->setDefaultProfilePreset(
-            cam_left->getFps(),  dai::VideoEncoderProperties::Profile::H264_MAIN);
-        enc_left->setBitrateKbps(500); // 0.5 Mbps
+            cam_left->getFps(), dai::VideoEncoderProperties::Profile::H264_MAIN);
+        enc_left->setBitrateKbps(options.encoding_bitrate_kbps);
 
         cam_left->out.link(enc_left->input);
         enc_left->bitstream.link(xout_left->input);
@@ -177,15 +109,15 @@ dai::Pipeline* make_pipeline_recording(cxxPipelineOptions const& options) {
         std::shared_ptr<dai::node::MonoCamera> cam_right = pipeline->create<dai::node::MonoCamera>();
         cam_right->setBoardSocket(dai::CameraBoardSocket::CAM_C);  // this should be the right camera
         cam_right->setResolution(dai::MonoCameraProperties::SensorResolution::THE_800_P);
-        cam_right->setFps(options.camera_fps);
+        cam_right->setFps(options.camera_mono_fps);
 
         auto xout_right = pipeline->create<dai::node::XLinkOut>();
         xout_right->setStreamName("cam_mono_right");
 
         auto enc_right = pipeline->create<dai::node::VideoEncoder>();
         enc_right->setDefaultProfilePreset(
-            cam_right->getFps(),  dai::VideoEncoderProperties::Profile::H264_MAIN);
-        enc_right->setBitrateKbps(500); // 0.5 Mbps
+            cam_right->getFps(), dai::VideoEncoderProperties::Profile::H264_MAIN);
+        enc_right->setBitrateKbps(options.encoding_bitrate_kbps);
 
         cam_right->out.link(enc_right->input);
         enc_right->bitstream.link(xout_right->input);
