@@ -41,10 +41,12 @@ dai::Device* open_device(rust::Str const oak_id, bool usb2_mode) {
     // Can accept mxid, ip address or usb port name
     DeviceInfo info = DeviceInfo(std::string(oak_id));
     auto usb_speed = !usb2_mode ? dai::UsbSpeed::SUPER_PLUS : dai::UsbSpeed::HIGH;
-    auto device = new dai::Device(dai::OpenVINO::Version::VERSION_2022_1, info, usb_speed);
-    // device->setLogLevel(dai::LogLevel::DEBUG);
-    // device->setLogOutputLevel(dai::LogLevel::DEBUG);
-    return device;
+    try {
+        auto device = new dai::Device(dai::OpenVINO::Version::VERSION_2022_1, info, usb_speed);
+        return device;
+    } catch (const std::exception& e) {
+        return nullptr;
+    }
 }
 
 /**
@@ -174,7 +176,13 @@ dai::DataInputQueue* get_input_queue(dai::Device* device, rust::Str const name, 
  * @return The result of the operation which indicates if the frame was successfully retrieved.
  */
 TryGetResult try_get_image_frame(dai::DataOutputQueue* queue, rust::Slice<uint8_t> dst_data, cxxImageFrameInfo& frame_info) {
-    auto img_frame = queue->tryGet<dai::ImgFrame>();
+    std::shared_ptr<dai::ImgFrame> img_frame = nullptr;
+    try {
+        img_frame = queue->tryGet<dai::ImgFrame>();
+    } catch (const std::exception& e) {
+        return TryGetResult::PipelineError;
+    }
+
     if(!img_frame) {
         // no frame found, so we return a null pointer to skip the tick in the codelet
         return TryGetResult::TryAgain;
@@ -208,7 +216,13 @@ TryGetResult try_get_image_frame(dai::DataOutputQueue* queue, rust::Slice<uint8_
  * @return The result of the operation which indicates if the frame was successfully retrieved.
  */
 TryGetResult try_get_imu_packets(dai::DataOutputQueue* queue, rust::Slice<cxxImuPacket> imu_packets, uint32_t& available_count) {
-    auto imu_data = queue->tryGet<dai::IMUData>();
+    std::shared_ptr<dai::IMUData> imu_data = nullptr;
+    try {
+        imu_data = queue->tryGet<dai::IMUData>();
+    } catch (const std::exception& e) {
+        return TryGetResult::PipelineError;
+    }
+
     if(!imu_data) {
         return TryGetResult::TryAgain;
     }
