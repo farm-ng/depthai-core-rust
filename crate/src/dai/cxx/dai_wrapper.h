@@ -14,6 +14,7 @@ namespace dai
     struct cxxImuPacketInfo;
     struct cxxCameraControlSettings;
     enum class TryGetResult;
+    enum class cxxOakCameraEncodingQuality;
 
     rust::Vec<rust::String> get_all_available_devices();
 

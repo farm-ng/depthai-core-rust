@@ -1,6 +1,14 @@
 #[cxx::bridge(namespace = "dai")]
 pub mod ffi {
 
+    #[derive(Debug)]
+    #[repr(i32)]
+    pub enum cxxOakCameraEncodingQuality {
+        Baseline = 0,
+        Main = 1,
+        High = 2,
+    }
+
     #[derive(Debug, Clone)]
     struct cxxPipelineOptions {
         oak_id: String,
@@ -13,7 +21,7 @@ pub mod ffi {
         camera_mono_fps: f32,
         camera_color_fps: f32,
         encoding_bitrate_kbps: u32,
-        encoding_quality: u8,
+        encoding_quality: cxxOakCameraEncodingQuality,
         imu_use_raw: bool,
         imu_report_rate_hz: u32,
         imu_batch_report_threshold: u32,

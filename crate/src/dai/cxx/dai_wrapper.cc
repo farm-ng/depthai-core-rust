@@ -50,6 +50,26 @@ dai::Device* open_device(rust::Str const oak_id, bool usb2_mode) {
 }
 
 /**
+ * @brief Gets the encoding profile for the given quality for the H264 encoder.
+ *
+ * @note The default profile is H264_BASELINE.
+ * @param quality The quality to get the encoding profile for.
+ * @return The encoding profile.
+ */
+dai::VideoEncoderProperties::Profile get_encoding_profile(cxxOakCameraEncodingQuality const& quality) {
+    switch (quality) {
+        case cxxOakCameraEncodingQuality::Baseline:
+            return dai::VideoEncoderProperties::Profile::H264_BASELINE;
+        case cxxOakCameraEncodingQuality::Main:
+            return dai::VideoEncoderProperties::Profile::H264_MAIN;
+        case cxxOakCameraEncodingQuality::High:
+            return dai::VideoEncoderProperties::Profile::H264_HIGH;
+        default:
+            return dai::VideoEncoderProperties::Profile::H264_BASELINE;
+    }
+}
+
+/**
  * @brief Creates a pipeline for recording with encoding.
  *
  * @param options Configuration options for the pipeline.
@@ -57,15 +77,8 @@ dai::Device* open_device(rust::Str const oak_id, bool usb2_mode) {
  */
 dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
 
-    // shared parameters
-    dai::VideoEncoderProperties::Profile encoding_profile;
-    if (options.encoding_quality == 0) {
-        encoding_profile = dai::VideoEncoderProperties::Profile::H264_BASELINE;
-    } else if (options.encoding_quality == 1) {
-        encoding_profile = dai::VideoEncoderProperties::Profile::H264_MAIN;
-    } else if (options.encoding_quality == 2) {
-        encoding_profile = dai::VideoEncoderProperties::Profile::H264_HIGH;
-    }
+    // parse the quality for the encoder
+    dai::VideoEncoderProperties::Profile encoding_profile = get_encoding_profile(options.encoding_quality);
 
     // build the pipeline
 
@@ -81,8 +94,7 @@ dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
         xout_color->setStreamName("cam_color");
 
         auto enc_color = pipeline->create<dai::node::VideoEncoder>();
-        enc_color->setDefaultProfilePreset(
-            cam_color->getFps(), dai::VideoEncoderProperties::Profile::H264_MAIN);
+        enc_color->setDefaultProfilePreset(cam_color->getFps(), encoding_profile);
         enc_color->setBitrateKbps(options.encoding_bitrate_kbps);
 
         cam_color->video.link(enc_color->input);
@@ -99,8 +111,7 @@ dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
         xout_left->setStreamName("cam_mono_left");
 
         auto enc_left = pipeline->create<dai::node::VideoEncoder>();
-        enc_left->setDefaultProfilePreset(
-            cam_left->getFps(), dai::VideoEncoderProperties::Profile::H264_MAIN);
+        enc_left->setDefaultProfilePreset(cam_left->getFps(), encoding_profile);
         enc_left->setBitrateKbps(options.encoding_bitrate_kbps);
 
         cam_left->out.link(enc_left->input);
@@ -117,8 +128,7 @@ dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
         xout_right->setStreamName("cam_mono_right");
 
         auto enc_right = pipeline->create<dai::node::VideoEncoder>();
-        enc_right->setDefaultProfilePreset(
-            cam_right->getFps(), dai::VideoEncoderProperties::Profile::H264_MAIN);
+        enc_right->setDefaultProfilePreset(cam_right->getFps(), encoding_profile);
         enc_right->setBitrateKbps(options.encoding_bitrate_kbps);
 
         cam_right->out.link(enc_right->input);
