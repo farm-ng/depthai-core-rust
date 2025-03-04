@@ -62,7 +62,7 @@ pub mod ffi {
         InvalidSize = 0,
         Ok = 1,
         TryAgain = 2,
-        PipelineError = 3,
+        QueueError = 3,
     }
 
     extern "C++" {

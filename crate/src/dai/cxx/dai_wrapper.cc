@@ -180,7 +180,7 @@ TryGetResult try_get_image_frame(dai::DataOutputQueue* queue, rust::Slice<uint8_
     try {
         img_frame = queue->tryGet<dai::ImgFrame>();
     } catch (const std::exception& e) {
-        return TryGetResult::PipelineError;
+        return TryGetResult::QueueError;
     }
 
     if(!img_frame) {
@@ -220,7 +220,7 @@ TryGetResult try_get_imu_packets(dai::DataOutputQueue* queue, rust::Slice<cxxImu
     try {
         imu_data = queue->tryGet<dai::IMUData>();
     } catch (const std::exception& e) {
-        return TryGetResult::PipelineError;
+        return TryGetResult::QueueError;
     }
 
     if(!imu_data) {
