@@ -84,6 +84,10 @@ dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
 
     auto pipeline = new dai::Pipeline();
 
+    // node to change the camera settings
+    auto control_in = pipeline->create<dai::node::XLinkIn>();
+    control_in->setStreamName("control");
+
     if (options.enable_cam_color) {
         std::shared_ptr<dai::node::ColorCamera> cam_color = pipeline->create<dai::node::ColorCamera>();
         cam_color->setBoardSocket(dai::CameraBoardSocket::CAM_A);  // this should be the center camera
@@ -99,6 +103,8 @@ dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
 
         cam_color->video.link(enc_color->input);
         enc_color->bitstream.link(xout_color->input);
+
+        control_in->out.link(cam_color->inputControl);
     }
 
     if (options.enable_cam_left_mono) {
@@ -116,6 +122,8 @@ dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
 
         cam_left->out.link(enc_left->input);
         enc_left->bitstream.link(xout_left->input);
+
+        control_in->out.link(cam_left->inputControl);
     }
 
     if (options.enable_cam_right_mono) {
@@ -133,6 +141,8 @@ dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
 
         cam_right->out.link(enc_right->input);
         enc_right->bitstream.link(xout_right->input);
+
+        control_in->out.link(cam_right->inputControl);
     }
 
     // assign the imu to the pipeline
@@ -154,6 +164,7 @@ dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
     auto xout_imu = pipeline->create<dai::node::XLinkOut>();
     xout_imu->setStreamName("imu");
     imu->out.link(xout_imu->input);
+
 
     return pipeline;
 }
