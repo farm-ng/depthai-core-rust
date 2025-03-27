@@ -9,6 +9,13 @@ pub mod ffi {
         High = 2,
     }
 
+    #[derive(Debug)]
+    #[repr(i32)]
+    pub enum cxxEncodingRateControlMode {
+        Cbr = 0,
+        Vbr = 1,
+    }
+
     #[derive(Debug, Clone)]
     struct cxxPipelineOptions {
         oak_id: String,
@@ -22,6 +29,9 @@ pub mod ffi {
         camera_color_fps: f32,
         encoding_bitrate_kbps: u32,
         encoding_quality: cxxOakCameraEncodingQuality,
+        encoding_rate_control_mode: cxxEncodingRateControlMode,
+        encoding_vbr_quality: u32,
+        encoding_frames_per_keyframe: u32,
         imu_use_raw: bool,
         imu_report_rate_hz: u32,
         imu_batch_report_threshold: u32,

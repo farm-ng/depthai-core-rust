@@ -65,8 +65,20 @@ dai::VideoEncoderProperties::Profile get_encoding_profile(cxxOakCameraEncodingQu
         case cxxOakCameraEncodingQuality::High:
             return dai::VideoEncoderProperties::Profile::H264_HIGH;
         default:
-            return dai::VideoEncoderProperties::Profile::H264_BASELINE;
+            return dai::VideoEncoderProperties::Profile::H264_HIGH;
     }
+}
+
+dai::VideoEncoderProperties::RateControlMode to_rate_control_mode(
+    cxxEncodingRateControlMode mode) {
+  switch (mode) {
+    case cxxEncodingRateControlMode::Cbr:
+      return dai::VideoEncoderProperties::RateControlMode::CBR;
+    case cxxEncodingRateControlMode::Vbr:
+      return dai::VideoEncoderProperties::RateControlMode::VBR;
+    default:
+      return dai::VideoEncoderProperties::RateControlMode::CBR;
+  }
 }
 
 /**
@@ -79,6 +91,7 @@ dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
 
     // parse the quality for the encoder
     dai::VideoEncoderProperties::Profile encoding_profile = get_encoding_profile(options.encoding_quality);
+    dai::VideoEncoderProperties::RateControlMode encoding_rate_control_mode = to_rate_control_mode(options.encoding_rate_control_mode);
 
     // build the pipeline
 
@@ -100,6 +113,9 @@ dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
         auto enc_color = pipeline->create<dai::node::VideoEncoder>();
         enc_color->setDefaultProfilePreset(cam_color->getFps(), encoding_profile);
         enc_color->setBitrateKbps(options.encoding_bitrate_kbps);
+        enc_color->setRateControlMode(encoding_rate_control_mode);
+        enc_color->setQuality(options.encoding_vbr_quality);
+        enc_color->setKeyframeFrequency(options.encoding_frames_per_keyframe);
 
         cam_color->video.link(enc_color->input);
         enc_color->bitstream.link(xout_color->input);
@@ -119,6 +135,9 @@ dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
         auto enc_left = pipeline->create<dai::node::VideoEncoder>();
         enc_left->setDefaultProfilePreset(cam_left->getFps(), encoding_profile);
         enc_left->setBitrateKbps(options.encoding_bitrate_kbps);
+        enc_left->setRateControlMode(encoding_rate_control_mode);
+        enc_left->setQuality(options.encoding_vbr_quality);
+        enc_left->setKeyframeFrequency(options.encoding_frames_per_keyframe);
 
         cam_left->out.link(enc_left->input);
         enc_left->bitstream.link(xout_left->input);
@@ -138,6 +157,9 @@ dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
         auto enc_right = pipeline->create<dai::node::VideoEncoder>();
         enc_right->setDefaultProfilePreset(cam_right->getFps(), encoding_profile);
         enc_right->setBitrateKbps(options.encoding_bitrate_kbps);
+        enc_right->setRateControlMode(encoding_rate_control_mode);
+        enc_right->setQuality(options.encoding_vbr_quality);
+        enc_right->setKeyframeFrequency(options.encoding_frames_per_keyframe);
 
         cam_right->out.link(enc_right->input);
         enc_right->bitstream.link(xout_right->input);
