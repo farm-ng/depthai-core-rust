@@ -114,7 +114,6 @@ dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
         enc_color->setDefaultProfilePreset(cam_color->getFps(), encoding_profile);
         enc_color->setBitrateKbps(options.encoding_bitrate_kbps);
         enc_color->setRateControlMode(encoding_rate_control_mode);
-        enc_color->setQuality(options.encoding_quality);
         enc_color->setKeyframeFrequency(options.encoding_frames_per_keyframe);
 
         cam_color->video.link(enc_color->input);
@@ -136,7 +135,6 @@ dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
         enc_left->setDefaultProfilePreset(cam_left->getFps(), encoding_profile);
         enc_left->setBitrateKbps(options.encoding_bitrate_kbps);
         enc_left->setRateControlMode(encoding_rate_control_mode);
-        enc_left->setQuality(options.encoding_quality);
         enc_left->setKeyframeFrequency(options.encoding_frames_per_keyframe);
 
         cam_left->out.link(enc_left->input);
@@ -158,7 +156,6 @@ dai::Pipeline* make_pipeline_encoding(cxxPipelineOptions const& options) {
         enc_right->setDefaultProfilePreset(cam_right->getFps(), encoding_profile);
         enc_right->setBitrateKbps(options.encoding_bitrate_kbps);
         enc_right->setRateControlMode(encoding_rate_control_mode);
-        enc_right->setQuality(options.encoding_quality);
         enc_right->setKeyframeFrequency(options.encoding_frames_per_keyframe);
 
         cam_right->out.link(enc_right->input);
