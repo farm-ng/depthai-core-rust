@@ -30,7 +30,7 @@ pub mod ffi {
         encoding_bitrate_kbps: u32,
         encoding_quality: cxxOakCameraEncodingQuality,
         encoding_rate_control_mode: cxxEncodingRateControlMode,
-        encoding_vbr_quality: u32,
+        encoding_quality: u32,
         encoding_frames_per_keyframe: u32,
         imu_use_raw: bool,
         imu_report_rate_hz: u32,
