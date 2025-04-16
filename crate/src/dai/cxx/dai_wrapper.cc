@@ -40,6 +40,7 @@ rust::Vec<rust::String> get_all_available_devices() {
 dai::Device* open_device(rust::Str const oak_id, bool usb2_mode) {
     // Can accept mxid, ip address or usb port name
     DeviceInfo info = DeviceInfo(std::string(oak_id));
+    std::cout << "Opening device with info: " << info.toString() << std::endl;
     auto usb_speed = !usb2_mode ? dai::UsbSpeed::SUPER_PLUS : dai::UsbSpeed::HIGH;
     try {
         auto device = new dai::Device(dai::OpenVINO::Version::VERSION_2022_1, info, usb_speed);
